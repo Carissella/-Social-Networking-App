@@ -46,7 +46,7 @@ module.exports = {
       .then((user) =>
         !user
           ? res.status(404).json({ message: 'No user with this id!' })
-          : res.json(user)
+          : resstatus(200).json({message: `User ${user.username} updated`})
       )
       .catch((err) => res.status(500).json(err));
   },
@@ -73,4 +73,37 @@ module.exports = {
         res.status(500).json(err);
       });
   },
+  addFriend(req, res) {
+    User.findOneAndUpdate(
+        { _id: req.params.userId },
+        { $addToSet: { friends: req.params.friendId } },
+        { runValidators: true, new: true },
+    )
+    .catch((err) => res.status(500).json(err));
+    User.findOneAndUpdate(
+        { _id: req.params.friendId },
+        { $addToSet: { friends: req.params.userId } },
+        { runValidators: true, new: true },
+        )
+    .then(() => res.json({ message: 'New friend added'}))
+    .catch((err) => res.status(500).json(err));
+},
+removeFriend(req, res) {
+    User.findOneAndUpdate(
+        { _id: req.params.userId },
+        { $pull: { friends: req.params.friendId } },
+        { runValidators: true, new: true },
+    )
+    .catch((err) => res.status(500).json(err));
+    User.findOneAndUpdate(
+        { _id: req.params.friendId },
+        { $pull: { friends: req.params.userId } },
+        { runValidators: true, new: true },
+        )
+    .then(() => res.json({ message: 'Removed friend'}))
+    .catch((err) => res.status(500).json(err));
+  },
 };
+
+
+
